@@ -39,6 +39,7 @@ def polar_to_cartesian_2d(r, theta):
     return r*np.cos(theta), r*np.sin(theta)
 
 def make_subjective_image(img, x, y, rad, order=1, cval=-1):
+    result = np.copy(img)
     half_h = len(img)/2
     half_w = len(img[0])/2
     
@@ -60,4 +61,4 @@ def make_subjective_image(img, x, y, rad, order=1, cval=-1):
         [0, 0, 1]
     ])
     affine = np.matmul(t2, np.matmul(r, t1))
-    return affine_transform(img, affine, order=order, cval=cval)
+    return affine_transform(result, affine, order=order, cval=cval)

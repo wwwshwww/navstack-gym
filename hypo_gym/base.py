@@ -19,6 +19,7 @@ class ChestSearchEnv(gym.Env):
 
     def __init__(self, 
             max_episode_steps: int=500, 
+            seed=None,
             map_size: int=MAP_SIZE,
             map_resolition: float=MAP_RESOLUTION,
             spawn_extension: float=SPAWN_EXTENSION,
@@ -31,6 +32,8 @@ class ChestSearchEnv(gym.Env):
         self.max_episode_steps = max_episode_steps
         self.map_size = map_size
         self.map_resolition = map_resolition
+
+        self.elapsed_step = 0
 
         self.agent_initial_position = (0,0,0) # (x,y,yaw)
         self.agent_current_position = (0,0,0)
@@ -50,8 +53,8 @@ class ChestSearchEnv(gym.Env):
         self.env_half_size = self.env_full_size / 2
         self.moveble_range = self.env_half_size / MOVABLE_DISCOUNT
         self.action_space = spaces.Box(low=-1, high=1, shape=(3,))
-        self.action_range = np.array([self.moveble_range, np.pi/2, np.pi])
-        self.seed()
+        self.action_range = np.array([self.moveble_range, np.pi/2, np.pi/2])
+        self.seed(seed)
 
 
     def reset(self, 
@@ -68,7 +71,7 @@ class ChestSearchEnv(gym.Env):
             scene_room_wall_thickness: float=0.05, 
             scene_wall_threshold: float=0.1
     ):
-    
+        
         if (self.scener.room_config is None) or is_generate_room:
             self.scener.generate_scene(
                 scene_obstacle_count,
@@ -85,26 +88,35 @@ class ChestSearchEnv(gym.Env):
             # self.scener.generate_scene()
 
         if is_generate_pose:
-            self.agent_initial_postion = self.scener.spawn()
+            self.agent_initial_position = self.scener.spawn()
+            self.agent_current_position = self.agent_initial_position
 
         self.actioner.initialize(self.scener.env_pixel, self.agent_initial_position)
+        self.elapsed_step = 0
 
         return self._get_observation()
 
     def step(self, action):
-        act = [*polar_to_cartesian_2d(*action[:2]), action[2]]
-        goal = relative_to_origin(*act, *self.agent_current_position)
-        self.agent_current_position = self.actioner.do_action(goal)
+        assert not self.action_space.contains(np.array(action))
+        self.elapsed_step += 1
+        act = self.action_range * action
+        goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
+        self.actioner.do_action(goal)
+        self.agent_current_position = self.actioner.pose
         observation = self._get_observation()
         done = self._is_done()
         reward = self._reward()
         info = []
         return observation, reward, done, info
     
-    def step_debug(self, action):
-        act = [*polar_to_cartesian_2d(*action[:2]), action[2]]
-        goal = relative_to_origin(*act, *self.agent_current_position)
-        self.agent_current_position = self.actioner.do_action_visualize(goal)
+    def step_with_debug(self, action):
+        assert not self.action_space.contains(np.array(action))
+        self.elapsed_step += 1
+        act = self.action_range * action
+        goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
+        print(f'now: {self.agent_current_position}, \nto {goal}')
+        self.actioner.do_action_visualize(goal, f'step_{self.elapsed_step}')
+        self.agent_current_position = self.actioner.pose
         observation = self._get_observation()
         done = self._is_done()
         reward = self._reward()
