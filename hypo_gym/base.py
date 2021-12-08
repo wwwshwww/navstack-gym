@@ -7,9 +7,9 @@ import numpy as np
 from nav_sim_modules.actioner import HeuristicAutonomousActioner
 from nav_sim_modules.scener import ChestSearchRoomScener
 
-from .utils import make_subjective_image
+from .utils import make_subjective_image, polar_to_cartesian_2d, relative_to_origin
 
-from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DOSCOUNT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION 
+from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DISCOUNT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION 
 
 class ChestSearchEnv(gym.Env):
 
@@ -38,7 +38,6 @@ class ChestSearchEnv(gym.Env):
         self.chest_potions = []
         self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, map_resolition)
         self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolition)
-        print(self.actioner)
 
         self.observation_space = spaces.Box(
             low=min([MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL]),
@@ -49,7 +48,7 @@ class ChestSearchEnv(gym.Env):
 
         self.env_full_size = self.map_size * self.map_resolition
         self.env_half_size = self.env_full_size / 2
-        self.moveble_range = self.env_half_size / MOVABLE_DOSCOUNT
+        self.moveble_range = self.env_half_size / MOVABLE_DISCOUNT
         self.action_space = spaces.Box(low=-1, high=1, shape=(3,))
         self.action_range = np.array([self.moveble_range, np.pi/2, np.pi])
         self.seed()
@@ -86,17 +85,29 @@ class ChestSearchEnv(gym.Env):
             # self.scener.generate_scene()
 
         if is_generate_pose:
-            self.agent_start_postion = self.scener.spawn()
+            self.agent_initial_postion = self.scener.spawn()
 
         self.actioner.initialize(self.scener.env_pixel, self.agent_initial_position)
 
         return self._get_observation()
 
     def step(self, action):
-        self.agent_current_position = self.actioner.goto(action)
-        observation = self._subjective(self.actioner.navs.mapper.occupancy_map)
+        act = [*polar_to_cartesian_2d(*action[:2]), action[2]]
+        goal = relative_to_origin(*act, *self.agent_current_position)
+        self.agent_current_position = self.actioner.do_action(goal)
+        observation = self._get_observation()
         done = self._is_done()
-        reward = self.reward()
+        reward = self._reward()
+        info = []
+        return observation, reward, done, info
+    
+    def step_debug(self, action):
+        act = [*polar_to_cartesian_2d(*action[:2]), action[2]]
+        goal = relative_to_origin(*act, *self.agent_current_position)
+        self.agent_current_position = self.actioner.do_action_visualize(goal)
+        observation = self._get_observation()
+        done = self._is_done()
+        reward = self._reward()
         info = []
         return observation, reward, done, info
         
@@ -115,7 +126,7 @@ class ChestSearchEnv(gym.Env):
         return [seed]
 
     def _is_done(self):
-        pass
+        return False
 
-    def reward(self):
-        pass
+    def _reward(self):
+        return 0

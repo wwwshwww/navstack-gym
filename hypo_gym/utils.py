@@ -33,7 +33,7 @@ def relative_to_origin(target_x, target_y, target_yaw, origin_x, origin_y, origi
     return origin_x+corrected_relative[0], origin_y+corrected_relative[1], ang
 
 def cartesian_to_polar_2d(x, y):
-    return np.norm.linalg([x,y]), np.arctan2(y,x)
+    return np.linalg.norm([x,y]), np.arctan2(y,x)
 
 def polar_to_cartesian_2d(r, theta):
     return r*np.cos(theta), r*np.sin(theta)

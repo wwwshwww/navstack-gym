@@ -13,6 +13,6 @@ ALLOWABLE_GOAL_ERROR_NORM = 0.5
 AVOIDANCE_SIZE = 2
 
 ## Gym param
-MOVABLE_DOSCOUNT = 5 # half_size / <"this">
+MOVABLE_DISCOUNT = 5 # half_size / <"this">
 
 ## randoor param
