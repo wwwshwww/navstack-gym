@@ -115,7 +115,7 @@ class ChestSearchEnv(gym.Env):
         act = self.action_range * action
         goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
         print(f'now: {self.agent_current_position}, \nto {goal}')
-        self.actioner.do_action_visualize(goal, f'step_{self.elapsed_step}')
+        self.actioner.do_action_visualize(goal, f'step_{str(self.elapsed_step).zfill(3)}')
         self.agent_current_position = self.actioner.pose
         observation = self._get_observation()
         done = self._is_done()
