@@ -97,7 +97,7 @@ class ChestSearchEnv(gym.Env):
         return self._get_observation()
 
     def step(self, action):
-        assert not self.action_space.contains(np.array(action))
+        assert self.action_space.contains(action)
         self.elapsed_step += 1
         act = self.action_range * action
         goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
@@ -110,7 +110,7 @@ class ChestSearchEnv(gym.Env):
         return observation, reward, done, info
     
     def step_with_debug(self, action):
-        assert not self.action_space.contains(np.array(action))
+        assert self.action_space.contains(action)
         self.elapsed_step += 1
         act = self.action_range * action
         goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
