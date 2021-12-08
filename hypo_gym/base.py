@@ -9,7 +9,7 @@ from nav_sim_modules.scener import ChestSearchRoomScener
 
 from .utils import make_subjective_image, polar_to_cartesian_2d, relative_to_origin
 
-from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DISCOUNT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION 
+from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DISCOUNT, MOVE_LIMIT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION 
 
 class ChestSearchEnv(gym.Env):
 
@@ -27,7 +27,8 @@ class ChestSearchEnv(gym.Env):
             path_planning_count: int=PATH_PLANNING_COUNT,
             path_turnable: float=PATH_TURNABLE,
             allowable_goal_error_norm: float=ALLOWABLE_GOAL_ERROR_NORM,
-            avoidance_size: int=AVOIDANCE_SIZE
+            avoidance_size: int=AVOIDANCE_SIZE,
+            move_limit: int=MOVE_LIMIT
     ):
         self.max_episode_steps = max_episode_steps
         self.map_size = map_size
@@ -39,7 +40,7 @@ class ChestSearchEnv(gym.Env):
         self.agent_current_position = (0,0,0)
         self.key_postions = []
         self.chest_potions = []
-        self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, map_resolition)
+        self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, move_limit, map_resolition)
         self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolition)
 
         self.observation_space = spaces.Box(
