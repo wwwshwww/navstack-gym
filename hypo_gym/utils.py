@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.ndimage import affine_transform
+import copy
 
 def normalize_angle_rad(rad):
     return (rad + np.pi) % (2 * np.pi) - np.pi

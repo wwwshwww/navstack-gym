@@ -2,7 +2,6 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 from nav_sim_modules import MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL
-from nav_sim_modules import actioner
 import numpy as np
 from nav_sim_modules.actioner import HeuristicAutonomousActioner
 from nav_sim_modules.scener import ChestSearchRoomScener
@@ -125,6 +124,7 @@ class ChestSearchEnv(gym.Env):
         return observation, reward, done, info
         
     def _get_observation(self) -> np.ndarray:
+        # print()
         return make_subjective_image(
             self.actioner.occupancy_map,
             self.actioner.pose[0] / self.map_resolition,
