@@ -1,3 +1,4 @@
+from typing import Tuple
 import gym
 from gym import spaces
 from gym.utils import seeding
@@ -72,7 +73,9 @@ class ChestSearchEnv(gym.Env):
             scene_wall_threshold: float=0.1
     ):
         
-        if (self.scener.room_config is None) or is_generate_room:
+        fl = self.scener.room_config is None
+
+        if fl or is_generate_room:
             self.scener.generate_scene(
                 scene_obstacle_count,
                 scene_obstacle_size,
@@ -85,9 +88,7 @@ class ChestSearchEnv(gym.Env):
                 scene_room_wall_thickness,
                 scene_wall_threshold
             )
-            # self.scener.generate_scene()
-
-        if is_generate_pose:
+        if fl or is_generate_pose:
             self.agent_initial_position = self.scener.spawn()
             self.agent_current_position = self.agent_initial_position
 
@@ -99,8 +100,7 @@ class ChestSearchEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action)
         self.elapsed_step += 1
-        act = self.action_range * action
-        goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
+        goal = self._convert_action_to_goal(action)
         self.actioner.do_action(goal)
         self.agent_current_position = self.actioner.pose
         observation = self._get_observation()
@@ -109,13 +109,12 @@ class ChestSearchEnv(gym.Env):
         info = []
         return observation, reward, done, info
     
-    def step_with_debug(self, action):
+    def step_with_debug(self, action, output_name=''):
         assert self.action_space.contains(action)
         self.elapsed_step += 1
-        act = self.action_range * action
-        goal = relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
+        goal = self._convert_action_to_goal(action)
         print(f'now: {self.agent_current_position}, \nto: {goal}')
-        self.actioner.do_action_visualize(goal, f'step_{str(self.elapsed_step).zfill(3)}')
+        self.actioner.do_action_visualize(goal, f'{output_name}_step_{str(self.elapsed_step).zfill(3)}')
         self.agent_current_position = self.actioner.pose
         observation = self._get_observation()
         done = self._is_done()
@@ -133,13 +132,17 @@ class ChestSearchEnv(gym.Env):
             cval=MAP_UNK_VAL
         )
     
+    def _convert_action_to_goal(self, relative_polar) -> Tuple[float, float, float]:
+        act = self.action_range * relative_polar
+        return relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
+    
     def seed(self, seed=None):
         # np.random.seed(seed)
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _is_done(self):
+    def _is_done(self) -> bool:
         return False
 
-    def _reward(self):
+    def _reward(self) -> float:
         return 0
