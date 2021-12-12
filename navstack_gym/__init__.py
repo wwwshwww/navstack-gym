@@ -1,6 +1,14 @@
 from nav_sim_modules import ENV_SIZE, RESOLUTION, MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL, SPAWN_EXTENSION
 import numpy as np
 
+## registration OpenAI Gym
+from gym.envs.registration import register
+
+register(
+    id='TreasureChestRoom-v0',
+    entry_point='navstack_gym.base:TreasureChestEnv',
+)
+
 ## General param
 MAP_SIZE = ENV_SIZE
 MAP_RESOLUTION = RESOLUTION

@@ -1,9 +1,15 @@
 from typing import Tuple
 import gym
+import numpy as np
+import matplotlib.pyplot as plt
+
+from descartes import PolygonPatch
+from shapely.ops import unary_union
+
 from gym import spaces
 from gym.utils import seeding
 from nav_sim_modules import MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL
-import numpy as np
+
 from nav_sim_modules.actioner import HeuristicAutonomousActioner
 from nav_sim_modules.scener import ChestSearchRoomScener
 
@@ -11,7 +17,7 @@ from .utils import make_subjective_image, polar_to_cartesian_2d, relative_to_ori
 
 from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DISCOUNT, MOVE_LIMIT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION 
 
-class ChestSearchEnv(gym.Env):
+class TreasureChestEnv(gym.Env):
 
     # MAP_SIZE: 0.1
     # MAP_RESOLUTION: 256
@@ -108,6 +114,46 @@ class ChestSearchEnv(gym.Env):
         reward = self._reward()
         info = []
         return observation, reward, done, info
+
+    def render(self, mode=''):
+        room = self.scener.room_config
+        pose = self.agent_current_position
+        env_size = self.map_resolition*self.map_size/2
+        fig = plt.figure(0, figsize=(10,10), dpi=100)
+        ax = fig.add_subplot(111)
+        plt.xlim(-env_size, env_size)
+        plt.ylim(-env_size, env_size)
+
+        wall = unary_union(room.get_polygons(room.tag_wall))
+        obstacles = unary_union(room.get_polygons(room.tag_obstacle))
+        chests = unary_union(room.get_polygons(room.tag_target))
+        keys = unary_union(room.get_polygons(room.tag_key))
+        obs_zones = unary_union(room.obstacle_hulls)
+        key_zones = unary_union(room.key_placing_area)
+
+        ax.add_patch(PolygonPatch(wall, fc='black', alpha=0.5, zorder=1))
+        ax.add_patch(PolygonPatch(obstacles, fc='black', alpha=0.5, zorder=3, label="obstacle"))
+        ax.add_patch(PolygonPatch(chests, fc='cyan', alpha=0.5, zorder=4, label='chest'))
+        ax.add_patch(PolygonPatch(keys, fc='yellow', alpha=1, zorder=6, label='key'))
+        ax.add_patch(PolygonPatch(key_zones, fc='yellow', alpha=0.1, zorder=5, label='key zone'))
+        ax.add_patch(PolygonPatch(obs_zones, fc='black', alpha=0.1, zorder=4, label='obs zone'))
+
+        r = 1
+        angle_x = pose[0] + np.cos(pose[2])*r
+        angle_y = pose[1] + np.sin(pose[2])*r
+        ax.plot([pose[0],angle_x], [pose[1],angle_y], label='agent angle', zorder=4)
+
+        ax.scatter(*pose[:2], s=50, color='red', label='agent position', zorder=4)
+
+        map_img = np.copy(self.actioner.occupancy_map.T[::-1,:])
+        map_img[map_img==-1] = 25
+        map_img[map_img==0] = 50
+        map_img[map_img==100] = 0
+
+        ax.imshow(map_img, cmap='gray', alpha=0.8, extent=(-env_size,env_size,-env_size,env_size), zorder=3)
+
+        ax.legend()
+        fig.show()
     
     def step_with_debug(self, action, output_name=''):
         assert self.action_space.contains(action)
