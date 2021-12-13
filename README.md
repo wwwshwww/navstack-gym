@@ -18,6 +18,10 @@ The rooms in which the agents are spawned are randomly generated such as the fol
 <img src='https://user-images.githubusercontent.com/41321650/144612303-07df02c0-b4af-46e0-8eea-36d905246f76.png' width=100%>
 
 
+## Installation
+
+`pip install navstack-gym`
+
 ## Usage
 
 I'll add a note later.
