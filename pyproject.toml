@@ -8,11 +8,11 @@ authors = ["Reona Sato <www.shinderu.www@gmail.com>"]
 python = ">=3.8,<3.10"
 gym = "^0.21.0"
 nav-sim-modules = "^0.3.2"
+matplotlib = "^3.5.0"
+descartes = "^1.1.0"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"
-matplotlib = "^3.5.0"
-descartes = "^1.1.0"
 pytest = "^6.2.5"
 
 [build-system]
