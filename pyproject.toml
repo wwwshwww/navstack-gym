@@ -1,8 +1,10 @@
 [tool.poetry]
 name = "navstack-gym"
-version = "0.1.0"
+version = "0.1.2"
 description = ""
 authors = ["Reona Sato <www.shinderu.www@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/wwwshwww/navstack-gym"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.10"

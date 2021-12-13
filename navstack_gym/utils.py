@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.ndimage import affine_transform
-import copy
+from PIL import Image
 
 def normalize_angle_rad(rad):
     return (rad + np.pi) % (2 * np.pi) - np.pi
@@ -63,3 +63,7 @@ def make_subjective_image(img, x, y, rad, order=1, cval=-1):
     ])
     affine = np.matmul(t2, np.matmul(r, t1))
     return affine_transform(result, affine, order=order, cval=cval)
+
+def create_gif(frames: list, filename: str="output", mode='RGB', duration=60):
+    frs = [Image.fromarray(f, mode=mode) for f in frames]
+    frs[0].save(f'{filename}.gif', save_all=True, append_images=frs[1:], optimize=False, duration=duration, loop=0)
