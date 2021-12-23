@@ -1,10 +1,10 @@
-from typing import Tuple
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
 
 from descartes import PolygonPatch
 from shapely.ops import unary_union
+from collections import deque
 
 from gym import spaces
 from gym.utils import seeding
@@ -15,7 +15,7 @@ from nav_sim_modules.scener import ChestSearchRoomScener
 
 from .utils import make_subjective_image, polar_to_cartesian_2d, relative_to_origin
 
-from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DISCOUNT, MOVE_LIMIT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION 
+from . import ALLOWABLE_GOAL_ERROR_NORM, AVOIDANCE_SIZE, MAP_SIZE, MAP_RESOLUTION, MOVABLE_DISCOUNT, MOVE_LIMIT, PATH_EXPLORATION_COUNT, PATH_PLANNING_COUNT, PATH_TURNABLE, SPAWN_EXTENSION , FOUND_THRESHOLD
 
 class TreasureChestEnv(gym.Env):
 
@@ -34,18 +34,21 @@ class TreasureChestEnv(gym.Env):
             path_turnable: float=PATH_TURNABLE,
             allowable_goal_error_norm: float=ALLOWABLE_GOAL_ERROR_NORM,
             avoidance_size: int=AVOIDANCE_SIZE,
-            move_limit: int=MOVE_LIMIT
+            move_limit: int=MOVE_LIMIT,
+            found_threshold: float=FOUND_THRESHOLD
     ):
         self.max_episode_steps = max_episode_steps
         self.map_size = map_size
         self.map_resolition = map_resolition
+        self.found_threshold = found_threshold
 
         self.elapsed_step = 0
 
         self.agent_initial_position = (0,0,0) # (x,y,yaw)
         self.agent_current_position = (0,0,0)
-        self.key_postions = []
-        self.chest_potions = []
+        self.obstacle_positions = []
+        self.key_positions = []
+        self.chest_positions = []
         self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, move_limit, map_resolition)
         self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolition)
 
@@ -61,8 +64,13 @@ class TreasureChestEnv(gym.Env):
         self.moveble_range = self.env_half_size / MOVABLE_DISCOUNT
         self.action_space = spaces.Box(low=-1, high=1, shape=(3,))
         self.action_range = np.array([self.moveble_range, np.pi/2, np.pi/2])
-        self.seed(seed)
 
+        self.indecies_key = []
+        self.indecies_chest = []
+        self.unfound_key = []
+        self.unfound_chest = []
+
+        self.seed(seed)
 
     def reset(self, 
             is_generate_pose: bool=True,
@@ -94,9 +102,18 @@ class TreasureChestEnv(gym.Env):
                 scene_room_wall_thickness,
                 scene_wall_threshold
             )
+            self.key_positions = self.scener.components_info[self.scener.tag_key]
+            self.chest_positions = self.scener.components_info[self.scener.tag_chest]
+            self.obstacle_positions = self.scener.components_info[self.scener.tag_obstacle]
+
         if fl or is_generate_pose:
             self.agent_initial_position = self.scener.spawn()
             self.agent_current_position = self.agent_initial_position
+
+        self.unfound_key = np.ones([self.scener.room_config.key_count], dtype=np.bool8)
+        self.unfound_chest = np.ones([self.scener.room_config.target_count], dtype=np.bool8)
+        self.indecies_key = np.arange(len(self.unfound_key))
+        self.indecies_chest = np.arange(len(self.unfound_chest))
 
         self.actioner.initialize(self.scener.env_pixel, self.agent_initial_position)
         self.elapsed_step = 0
@@ -109,11 +126,36 @@ class TreasureChestEnv(gym.Env):
         goal = self._convert_action_to_goal(action)
         self.actioner.do_action(goal)
         self.agent_current_position = self.actioner.pose
-        observation = self._get_observation()
-        done = self._is_done()
+        self.check_found()
         reward = self._reward()
+        done = self._is_done()
+        observation = self._get_observation()
         info = []
         return observation, reward, done, info
+
+    def step_with_debug(self, action, output_name=''):
+        assert self.action_space.contains(action)
+        self.elapsed_step += 1
+        goal = self._convert_action_to_goal(action)
+        print(f'now: {self.agent_current_position}, \nto: {goal}')
+        self.actioner.do_action_visualize(goal, f'{output_name}_step_{str(self.elapsed_step).zfill(3)}')
+        self.agent_current_position = self.actioner.pose
+        self.check_found()
+        reward = self._reward()
+        done = self._is_done()
+        observation = self._get_observation()
+        info = []
+        return observation, reward, done, info
+
+    def check_found(self) -> None:
+        norms_chest = np.linalg.norm(self.chest_positions[:,:2] - self.agent_current_position[:2], axis=1)
+        norms_key = np.linalg.norm(self.key_positions[:,:2] - self.agent_current_position[:2], axis=1)
+        found_chest = self.indecies_chest[np.logical_and(self.unfound_chest, norms_chest <= self.found_threshold)]
+        found_key = self.indecies_key[np.logical_and(self.unfound_key, norms_key <= self.found_threshold)]
+        if len(found_chest) > 0:
+            self.unfound_chest[found_chest[0]] = False
+        if len(found_key) > 0:
+            self.unfound_key[found_key[0]] = False
 
     def render(self, mode='rgb_array'):
         if mode == 'rgb_array':
@@ -140,6 +182,13 @@ class TreasureChestEnv(gym.Env):
             ax.add_patch(PolygonPatch(key_zones, fc='yellow', alpha=0.1, zorder=5, label='key zone'))
             ax.add_patch(PolygonPatch(obs_zones, fc='black', alpha=0.1, zorder=4, label='obs zone'))
 
+            found_chest = self.chest_positions[np.logical_not(self.unfound_chest)]
+            found_key = self.key_positions[np.logical_not(self.unfound_key)]
+            if len(found_chest) > 0:
+                ax.scatter(found_chest[:,0], found_chest[:,1], color='red', s=3, zorder=7)
+            if len(found_key) > 0:
+                ax.scatter(found_key[:,0], found_key[:,1], color='red', s=3, zorder=7)
+
             r = 1
             angle_x = pose[0] + np.cos(pose[2])*r
             angle_y = pose[1] + np.sin(pose[2])*r
@@ -161,22 +210,8 @@ class TreasureChestEnv(gym.Env):
             buf.shape = (w,h,4)
             buf = np.roll(buf, 3, axis=2)
             return buf
-    
-    def step_with_debug(self, action, output_name=''):
-        assert self.action_space.contains(action)
-        self.elapsed_step += 1
-        goal = self._convert_action_to_goal(action)
-        print(f'now: {self.agent_current_position}, \nto: {goal}')
-        self.actioner.do_action_visualize(goal, f'{output_name}_step_{str(self.elapsed_step).zfill(3)}')
-        self.agent_current_position = self.actioner.pose
-        observation = self._get_observation()
-        done = self._is_done()
-        reward = self._reward()
-        info = []
-        return observation, reward, done, info
         
     def _get_observation(self) -> np.ndarray:
-        # print()
         return make_subjective_image(
             self.actioner.occupancy_map,
             self.actioner.pose[0] / self.map_resolition,
@@ -185,7 +220,7 @@ class TreasureChestEnv(gym.Env):
             cval=MAP_UNK_VAL
         )
     
-    def _convert_action_to_goal(self, relative_polar) -> Tuple[float, float, float]:
+    def _convert_action_to_goal(self, relative_polar) -> tuple:
         act = self.action_range * relative_polar
         return relative_to_origin(*[*polar_to_cartesian_2d(*act[:2]), act[2]], *self.agent_current_position)
     
@@ -199,3 +234,78 @@ class TreasureChestEnv(gym.Env):
 
     def _reward(self) -> float:
         return 0
+
+class VisibleTreasureChestEnv(TreasureChestEnv):
+
+    def reset(self, 
+            is_generate_pose: bool=True,
+            is_generate_room: bool=True,
+            scene_obstacle_count: int=10,
+            scene_obstacle_size: float=0.7,
+            scene_target_size: float=0.2,
+            scene_key_size: float=0.2,
+            scene_obstacle_zone_thresh: float=1.5,
+            scene_distance_key_placing: float=0.7,
+            scene_range_key_placing: float=0.3, 
+            scene_room_length_max: float=9,
+            scene_room_wall_thickness: float=0.05, 
+            scene_wall_threshold: float=0.1
+    ):
+        
+        fl = self.scener.room_config is None
+
+        if fl or is_generate_room:
+            self.scener.generate_scene(
+                scene_obstacle_count,
+                scene_obstacle_size,
+                scene_target_size,
+                scene_key_size,
+                scene_obstacle_zone_thresh,
+                scene_distance_key_placing,
+                scene_range_key_placing,
+                scene_room_length_max,
+                scene_room_wall_thickness,
+                scene_wall_threshold, 
+                True,
+                True
+            )
+            self.key_positions = self.scener.components_info[self.scener.tag_key]
+            self.chest_positions = self.scener.components_info[self.scener.tag_chest]
+            self.obstacle_positions = self.scener.components_info[self.scener.tag_obstacle]
+
+        if fl or is_generate_pose:
+            self.agent_initial_position = self.scener.spawn()
+            self.agent_current_position = self.agent_initial_position
+
+        self.scener.tweak_chest_collision_all(True)
+        self.scener.tweak_key_collision_all(True)
+
+        self.unfound_key = np.ones([self.scener.room_config.key_count], dtype=np.bool8)
+        self.unfound_chest = np.ones([self.scener.room_config.target_count], dtype=np.bool8)
+        self.indecies_key = np.arange(len(self.unfound_key))
+        self.indecies_chest = np.arange(len(self.unfound_chest))
+
+        self.actioner.initialize(self.scener.env_pixel, self.agent_initial_position)
+        self.elapsed_step = 0
+
+        return self._get_observation()
+
+    def check_found(self) -> None:
+        norms_chest = np.linalg.norm(self.chest_positions[:,:2] - self.agent_current_position[:2], axis=1)
+        norms_key = np.linalg.norm(self.key_positions[:,:2] - self.agent_current_position[:2], axis=1)
+        found_chest = self.indecies_chest[np.logical_and(self.unfound_chest, norms_chest <= self.found_threshold)]
+        found_key = self.indecies_key[np.logical_and(self.unfound_key, norms_key <= self.found_threshold)]
+
+        is_found_chest = len(found_chest) > 0
+        is_found_key = len(found_key) > 0
+        if is_found_chest or is_found_key:
+            if is_found_chest:
+                self.unfound_chest[found_chest[0]] = False
+                self.scener.tweak_chest_collision(found_chest[0], False)
+            if is_found_key:
+                self.unfound_key[found_key[0]] = False
+                self.scener.tweak_key_collision(found_key[0], False)
+            new_env_pixel = self.scener.pixelize()
+            self.actioner.register_env_pixel(new_env_pixel)
+            self.actioner.navs.mapper.scan()
+

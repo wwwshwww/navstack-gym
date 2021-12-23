@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "navstack-gym"
-version = "0.1.2"
+version = "0.1.4"
 description = ""
 authors = ["Reona Sato <www.shinderu.www@gmail.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ homepage = "https://github.com/wwwshwww/navstack-gym"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.10"
 gym = "^0.21.0"
-nav-sim-modules = "^0.3.2"
+nav-sim-modules = "^0.3.6"
 matplotlib = "^3.5.0"
 descartes = "^1.1.0"
 
