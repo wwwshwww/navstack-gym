@@ -12,27 +12,23 @@ on:
       - master
 
 env:
-  PJ_ACTOR: ${{ github.repository_owner }}
-  PJ_REPO: ${{ github.repository }}
   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone ${{ env.PJ_REPO }}
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Setup docker
         run: |
           docker-compose build test-navstack-gym
           docker-compose up -d
       - name: Test env
         run: docker-compose exec -T test-navstack-gym pytest
-      - name: Build package
-        run: docker-compose exec -T test-navstack-gym poetry build
-      - name: Publish package
-        id: publish
-        run: docker-compose exec -T test-navstack-gym poetry publish -u "${{ secrets.PYPI_USERNAME }}" -p "${{ secrets.PYPI_PASSWORD }}"
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v1.9
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
       - name: Slack Notification
         uses: homoluctus/slatify@master
         with:
