@@ -48,4 +48,4 @@ for i in range(10):
     imgs.append(env.render('rgb_array'))
 ```
 
-<img src='https://user-images.githubusercontent.com/41321650/147233107-e1f4753b-df12-4c8b-b6ca-3a5d0b37a303.gif' width=100%>
+<img src='https://user-images.githubusercontent.com/41321650/147322364-ddf91960-a419-4d5f-999a-b65d2ae8d5fe.gif' width=100%>

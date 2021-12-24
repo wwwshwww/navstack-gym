@@ -8,10 +8,17 @@ register(
     id='TreasureChestRoom-v0',
     entry_point='navstack_gym.base:TreasureChestEnv',
 )
-
 register(
     id='TreasureChestRoom-v1',
     entry_point='navstack_gym.base:VisibleTreasureChestEnv',
+)
+register(
+    id='TreasureSearchRoom-v0',
+    entry_point='navstack_gym.treasure_search_env:TreasureSearchEnv',
+)
+register(
+    id='TreasureSearchRoom-v1',
+    entry_point='navstack_gym.treasure_search_env:VisibleTreasureSearchEnv',
 )
 
 ## General param

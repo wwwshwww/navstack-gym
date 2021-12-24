@@ -147,11 +147,15 @@ class TreasureChestEnv(gym.Env):
         info = []
         return observation, reward, done, info
 
-    def check_found(self) -> None:
+    def check_near(self) -> tuple:
         norms_chest = np.linalg.norm(self.chest_positions[:,:2] - self.agent_current_position[:2], axis=1)
         norms_key = np.linalg.norm(self.key_positions[:,:2] - self.agent_current_position[:2], axis=1)
         found_chest = self.indecies_chest[np.logical_and(self.unfound_chest, norms_chest <= self.found_threshold)]
         found_key = self.indecies_key[np.logical_and(self.unfound_key, norms_key <= self.found_threshold)]
+        return found_chest, found_key
+
+    def check_found(self) -> None:
+        found_chest, found_key = self.check_near()
         if len(found_chest) > 0:
             self.unfound_chest[found_chest[0]] = False
         if len(found_key) > 0:
@@ -291,10 +295,7 @@ class VisibleTreasureChestEnv(TreasureChestEnv):
         return self._get_observation()
 
     def check_found(self) -> None:
-        norms_chest = np.linalg.norm(self.chest_positions[:,:2] - self.agent_current_position[:2], axis=1)
-        norms_key = np.linalg.norm(self.key_positions[:,:2] - self.agent_current_position[:2], axis=1)
-        found_chest = self.indecies_chest[np.logical_and(self.unfound_chest, norms_chest <= self.found_threshold)]
-        found_key = self.indecies_key[np.logical_and(self.unfound_key, norms_key <= self.found_threshold)]
+        found_chest, found_key = self.check_near()
 
         is_found_chest = len(found_chest) > 0
         is_found_key = len(found_key) > 0
