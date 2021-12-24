@@ -32,7 +32,7 @@ jobs:
         run: docker-compose exec -T test-navstack-gym poetry build
       - name: Publish package
         id: publish
-        run: docker-compose exec -T test-navstack-gym poetry publish -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }}
+        run: docker-compose exec -T test-navstack-gym poetry publish -u "${{ secrets.PYPI_USERNAME }}" -p "${{ secrets.PYPI_PASSWORD }}"
       - name: Slack Notification
         uses: homoluctus/slatify@master
         with:
