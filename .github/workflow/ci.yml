@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '**.ipynb'
+    branches:
+      - master
+  pull_request:
+    branches: 
+      - master
+
+env:
+  PJ_ACTOR: ${{ github.repository_owner }}
+  PJ_REPO: ${{ github.repository }}
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone ${{ env.PJ_REPO }}
+        uses: actions/checkout@v1
+      - name: Setup docker
+        run: |
+          docker-compose build test-navstack-gym
+          docker-compose up -d
+      - name: Test env
+        run: docker-compose exec -T test-navstack-gym pytest
+      - name: Build package
+        run: docker-compose exec -T test-navstack-gym poetry build
+      - name: Publish package
+        id: publish
+        run: docker-compose exec -T test-navstack-gym poetry publish -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }}
+      - name: Slack Notification
+        uses: homoluctus/slatify@master
+        with:
+          type: ${{ job.status }}
+          job_name: '*[${{ env.PJ_REPO }}] Publish New Version*'
+          channel: 'dev-rl-env'
+          icon_emoji: ''
+        env: 
+          SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK }}

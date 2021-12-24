@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  test-navstack-gym:
+    # image: python:3.8.12-slim
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: test
+    command: tail -f /dev/null
+    

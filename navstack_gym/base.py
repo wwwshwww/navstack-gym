@@ -56,7 +56,7 @@ class TreasureChestEnv(gym.Env):
             low=min([MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL]),
             high=max([MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL]),
             shape=(map_size,map_size,),
-            dtype=np.float32
+            dtype=np.int64
         )
 
         self.env_full_size = self.map_size * self.map_resolition
@@ -221,6 +221,7 @@ class TreasureChestEnv(gym.Env):
             self.actioner.pose[0] / self.map_resolition,
             self.actioner.pose[1] / self.map_resolition,
             self.actioner.pose[2],
+            order=0,
             cval=MAP_UNK_VAL
         )
     

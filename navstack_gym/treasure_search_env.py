@@ -94,7 +94,7 @@ class VisibleTreasureSearchEnv(base.VisibleTreasureChestEnv):
 
         if len(found_key) > 0:
             self.unfound_key[found_key[0]] = False
-            self.scener.tweak_chest_collision(found_chest[0], False)
+            self.scener.tweak_key_collision(found_key[0], False)
             self.key_stock += 1
             
             new_env_pixel = self.scener.pixelize()
@@ -104,7 +104,7 @@ class VisibleTreasureSearchEnv(base.VisibleTreasureChestEnv):
             self.key_stock -= 1
             self.treasure_get_flag = True
             self.unfound_chest[found_chest[0]] = False
-            self.scener.tweak_key_collision(found_key[0], False)
+            self.scener.tweak_chest_collision(found_chest[0], False)
             
             new_env_pixel = self.scener.pixelize()
             self.actioner.register_env_pixel(new_env_pixel)
