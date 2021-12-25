@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture(scope='module')
 def env(request):
-    env = gym.make('TreasureSearchRoom-v0')
+    env = gym.make('VisibleTreasureHunt-v0')
     yield env
 
 @pytest.mark.commit 
