@@ -34,7 +34,7 @@ jobs:
         uses: homoluctus/slatify@master
         with:
           type: ${{ job.status }}
-          job_name: '*[${{ env.PJ_REPO }}] Publish New Version*'
+          job_name: '*[${{ github.repository }}] Publish*'
           channel: 'dev-rl-env'
           icon_emoji: ''
         env: 
