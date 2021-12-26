@@ -28,14 +28,14 @@ jobs:
       - name: Build and publish to pypi
         uses: JRubics/poetry-publish@v1.9
         with:
-          python_version: "3.8.12"
+          python_version: "3.7"
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-      - name: Slack Notification
-        uses: homoluctus/slatify@master
-        with:
-          type: ${{ job.status }}
-          job_name: '*[${{ github.repository }}] Publish*'
-          channel: 'dev-rl-env'
-          icon_emoji: ''
-        env: 
-          SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK }}
+      # - name: Slack Notification
+      #   uses: homoluctus/slatify@master
+      #   with:
+      #     type: ${{ job.status }}
+      #     job_name: '*[${{ github.repository }}] Publish*'
+      #     channel: 'dev-rl-env'
+      #     icon_emoji: ''
+      #   env: 
+      #     SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK }}

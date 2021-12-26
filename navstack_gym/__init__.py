@@ -53,4 +53,5 @@ MOVE_LIMIT = -1
 MOVABLE_DISCOUNT = 5 # movable = half_size / movable_discount
 FOUND_THRESHOLD = 0.75
 FOUND_IMMEDIATE_REWARD = 50
+DEFAULT_REWARD = -0.04
 ## randoor param

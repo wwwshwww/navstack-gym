@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 from . import base
-from . import FOUND_IMMEDIATE_REWARD
+from . import FOUND_IMMEDIATE_REWARD, DEFAULT_REWARD
 
 class InvisibleKeyHunt(base.InvisibleTreasureChestRoom):
 
@@ -23,7 +23,7 @@ class InvisibleKeyHunt(base.InvisibleTreasureChestRoom):
             self.unfound_key[found_key[0]] = False
 
     def _reward(self) -> float:
-        reward = 0
+        reward = DEFAULT_REWARD
         if self.reward_flag:
             reward += FOUND_IMMEDIATE_REWARD
             self.reward_flag = False
@@ -54,7 +54,7 @@ class VisibleKeyHunt(base.VisibleTreasureChestRoom):
             self.actioner.navs.mapper.scan()
 
     def _reward(self) -> float:
-        reward = 0
+        reward = DEFAULT_REWARD
         if self.reward_flag:
             reward += FOUND_IMMEDIATE_REWARD
             self.reward_flag = False
@@ -82,7 +82,7 @@ class InvisibleChestHunt(base.InvisibleTreasureChestRoom):
             self.unfound_chest[found_chest[0]] = False
 
     def _reward(self) -> float:
-        reward = 0
+        reward = DEFAULT_REWARD
         if self.reward_flag:
             reward += FOUND_IMMEDIATE_REWARD
             self.reward_flag = False
@@ -113,7 +113,7 @@ class VisibleChestHunt(base.VisibleTreasureChestRoom):
             self.actioner.navs.mapper.scan()
 
     def _reward(self) -> float:
-        reward = 0
+        reward = DEFAULT_REWARD
         if self.reward_flag:
             reward += FOUND_IMMEDIATE_REWARD
             self.reward_flag = False
