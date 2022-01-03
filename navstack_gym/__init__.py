@@ -36,6 +36,14 @@ register(
     id='VisibleChestHunt-v0',
     entry_point='navstack_gym.subtasks_env:VisibleChestHunt',
 )
+register(
+    id='InvisibleMapExplore-v0',
+    entry_point='navstack_gym.subtasks_env:InvisibleMapExplore',
+)
+register(
+    id='VisibleMapExplore-v0',
+    entry_point='navstack_gym.subtasks_env:VisibleMapExplore',
+)
 
 ## General param
 MAP_SIZE = ENV_SIZE
@@ -53,5 +61,6 @@ MOVE_LIMIT = -1
 MOVABLE_DISCOUNT = 5 # movable = half_size / movable_discount
 FOUND_THRESHOLD = 0.75
 FOUND_IMMEDIATE_REWARD = 50
+EXPLORE_MAGNIFICATION_REWARD = 200
 DEFAULT_REWARD = -0.04
 ## randoor param

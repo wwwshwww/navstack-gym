@@ -8,7 +8,7 @@ from collections import deque
 
 from gym import spaces
 from gym.utils import seeding
-from nav_sim_modules import MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL
+from nav_sim_modules import MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL, PASSABLE_COLOR
 
 from nav_sim_modules.actioner import HeuristicAutonomousActioner
 from nav_sim_modules.scener import ChestSearchRoomScener
@@ -35,12 +35,21 @@ class InvisibleTreasureChestRoom(gym.Env):
             allowable_goal_error_norm: float=ALLOWABLE_GOAL_ERROR_NORM,
             avoidance_size: int=AVOIDANCE_SIZE,
             move_limit: int=MOVE_LIMIT,
-            found_threshold: float=FOUND_THRESHOLD
+            found_threshold: float=FOUND_THRESHOLD, 
+            passable_color: int=PASSABLE_COLOR,
+            map_obs_val: int=MAP_OBS_VAL,
+            map_pass_val: int=MAP_PASS_VAL,
+            map_unk_val: int=MAP_UNK_VAL
     ):
         self.max_episode_steps = max_episode_steps
         self.map_size = map_size
         self.map_resolition = map_resolition
         self.found_threshold = found_threshold
+
+        self.passable_color = passable_color
+        self.map_obs_val = map_obs_val
+        self.map_pass_val = map_pass_val
+        self.map_unk_val = map_unk_val
 
         self.elapsed_step = 0
 
@@ -49,12 +58,12 @@ class InvisibleTreasureChestRoom(gym.Env):
         self.obstacle_positions = []
         self.key_positions = []
         self.chest_positions = []
-        self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, move_limit, map_resolition)
-        self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolition)
+        self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, move_limit, map_resolition, passable_color, map_obs_val, map_pass_val, map_unk_val)
+        self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolition, passable_color, map_obs_val, map_pass_val)
 
         self.observation_space = spaces.Box(
-            low=min([MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL]),
-            high=max([MAP_OBS_VAL, MAP_PASS_VAL, MAP_UNK_VAL]),
+            low=min([self.map_obs_val, self.map_pass_val, self.map_unk_val]),
+            high=max([self.map_obs_val, self.map_pass_val, self.map_unk_val]),
             shape=(map_size,map_size,),
             dtype=np.int64
         )
@@ -205,9 +214,9 @@ class InvisibleTreasureChestRoom(gym.Env):
             ax.scatter(*pose[:2], s=50, color='red', label='agent position', zorder=4)
 
             map_img = np.copy(self.actioner.occupancy_map.T[::-1,:])
-            map_img[map_img==-1] = 25
-            map_img[map_img==0] = 50
-            map_img[map_img==100] = 0
+            map_img[map_img==self.map_unk_val] = 25
+            map_img[map_img==self.map_pass_val] = 50
+            map_img[map_img==self.map_obs_val] = 0
 
             ax.imshow(map_img, cmap='gray', alpha=0.8, extent=(-env_size,env_size,-env_size,env_size), zorder=3)
 

@@ -41,8 +41,7 @@ def polar_to_cartesian_2d(r, theta):
 
 def make_subjective_image(img, x, y, rad, order=1, cval=-1):
     result = np.copy(img)
-    half_h = len(img)/2
-    half_w = len(img[0])/2
+    half_h, half_w = map(lambda x: x/2, img.shape)
     
     t1 = np.array([
         [1, 0, -half_h],

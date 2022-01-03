@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "navstack-gym"
-version = "0.1.8"
-description = ""
+version = "0.1.9"
+description = "Simulation environment of task with autonomous mobile robot using Navigation Stack"
 authors = ["Reona Sato <www.shinderu.www@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/wwwshwww/navstack-gym"
@@ -9,7 +9,7 @@ homepage = "https://github.com/wwwshwww/navstack-gym"
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"
 gym = "^0.21.0"
-nav-sim-modules = "^0.3.6"
+nav-sim-modules = "0.3.7"
 matplotlib = "^3.5.0"
 descartes = "^1.1.0"
 

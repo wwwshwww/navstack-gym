@@ -36,8 +36,8 @@ example:
 import gym
 import navstack_gym
 
-env = gym.make('TreasureChestRoom-v0')
-obs = env.reset(is_generate_pose=True, is_generate_room=True, obstacle_count=13)
+env = gym.make('VisibleTreasureHunt-v0')
+obs = env.reset(is_generate_pose=True, is_generate_room=True, obstacle_count=10)
 
 imgs = []
 imgs.append(env.render('rgb_array'))
@@ -48,4 +48,4 @@ for i in range(10):
     imgs.append(env.render('rgb_array'))
 ```
 
-<img src='https://user-images.githubusercontent.com/41321650/147322364-ddf91960-a419-4d5f-999a-b65d2ae8d5fe.gif' width=100%>
+<img src='https://user-images.githubusercontent.com/41321650/147936159-d6691e8e-8216-465b-a4a6-bd8748a3b010.gif' width=100%>
