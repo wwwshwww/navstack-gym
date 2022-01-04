@@ -27,7 +27,7 @@ class InvisibleTreasureChestRoom(gym.Env):
             max_episode_steps: int=500, 
             seed=None,
             map_size: int=MAP_SIZE,
-            map_resolition: float=MAP_RESOLUTION,
+            map_resolution: float=MAP_RESOLUTION,
             spawn_extension: float=SPAWN_EXTENSION,
             path_exploration_count: int=PATH_EXPLORATION_COUNT,
             path_planning_count: int=PATH_PLANNING_COUNT,
@@ -43,7 +43,7 @@ class InvisibleTreasureChestRoom(gym.Env):
     ):
         self.max_episode_steps = max_episode_steps
         self.map_size = map_size
-        self.map_resolition = map_resolition
+        self.map_resolution = map_resolution
         self.found_threshold = found_threshold
 
         self.passable_color = passable_color
@@ -58,8 +58,8 @@ class InvisibleTreasureChestRoom(gym.Env):
         self.obstacle_positions = []
         self.key_positions = []
         self.chest_positions = []
-        self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, move_limit, map_resolition, passable_color, map_obs_val, map_pass_val, map_unk_val)
-        self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolition, passable_color, map_obs_val, map_pass_val)
+        self.actioner = HeuristicAutonomousActioner(path_exploration_count, path_planning_count, path_turnable, allowable_goal_error_norm, avoidance_size, move_limit, map_resolution, passable_color, map_obs_val, map_pass_val, map_unk_val)
+        self.scener = ChestSearchRoomScener(spawn_extension, map_size, map_resolution, passable_color, map_obs_val, map_pass_val)
 
         self.observation_space = spaces.Box(
             low=min([self.map_obs_val, self.map_pass_val, self.map_unk_val]),
@@ -68,7 +68,7 @@ class InvisibleTreasureChestRoom(gym.Env):
             dtype=np.int64
         )
 
-        self.env_full_size = self.map_size * self.map_resolition
+        self.env_full_size = self.map_size * self.map_resolution
         self.env_half_size = self.env_full_size / 2
         self.moveble_range = self.env_half_size / MOVABLE_DISCOUNT
         self.action_space = spaces.Box(low=-1, high=1, shape=(3,))
@@ -81,7 +81,6 @@ class InvisibleTreasureChestRoom(gym.Env):
 
         self.key_stock = 0
         self.treasure_stock = 0
-        self.treasure_get_flag = False
 
         self.seed(seed)
 
@@ -120,7 +119,6 @@ class InvisibleTreasureChestRoom(gym.Env):
 
         self.key_stock = 0
         self.treasure_stock = 0
-        self.treasure_get_flag = False
 
         self.actioner.initialize(self.scener.env_pixel, self.agent_initial_position)
         self.elapsed_step = 0
@@ -177,12 +175,12 @@ class InvisibleTreasureChestRoom(gym.Env):
             self.key_stock += 1
         elif (len(found_chest) > 0) and (self.key_stock > 0):
             self.key_stock -= 1
-            self.treasure_get_flag = True
+            self.treasure_stock += 1
             self.unfound_chest[found_chest[0]] = False
 
     def render(self, mode='rgb_array'):
         if mode == 'rgb_array':
-            env_size = self.map_resolition*self.map_size/2
+            env_size = self.map_resolution*self.map_size/2
             room = self.scener.room_config
             pose = self.agent_current_position
 
@@ -255,8 +253,8 @@ class InvisibleTreasureChestRoom(gym.Env):
     def _get_observation(self) -> np.ndarray:
         return make_subjective_image(
             self.actioner.occupancy_map,
-            self.actioner.pose[0] / self.map_resolition,
-            self.actioner.pose[1] / self.map_resolition,
+            self.actioner.pose[0] / self.map_resolution,
+            self.actioner.pose[1] / self.map_resolution,
             self.actioner.pose[2],
             order=0,
             cval=self.map_unk_val
@@ -313,7 +311,7 @@ class VisibleTreasureChestRoom(InvisibleTreasureChestRoom):
             self.actioner.navs.mapper.scan()
         elif (len(found_chest) > 0) and (self.key_stock > 0):
             self.key_stock -= 1
-            self.treasure_get_flag = True
+            self.treasure_stock += 1
             self.unfound_chest[found_chest[0]] = False
             self.scener.tweak_chest_collision(found_chest[0], False)
             

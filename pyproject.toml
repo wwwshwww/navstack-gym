@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "navstack-gym"
-version = "0.1.10"
+version = "0.1.11"
 description = "Simulation environment of task with autonomous mobile robot using Navigation Stack"
 authors = ["Reona Sato <www.shinderu.www@gmail.com>"]
 readme = "README.md"

@@ -15,7 +15,7 @@ class InvisibleKeyHunt(base.InvisibleTreasureChestRoom):
 
     def _reward(self) -> float:
         reward = DEFAULT_REWARD
-        if self.key_found_num < np.sum(self.unfound_key==False):
+        if self.key_found_num < self.key_stock:
             self.key_found_num += 1
             reward += FOUND_IMMEDIATE_REWARD
         return reward
@@ -32,12 +32,11 @@ class VisibleKeyHunt(base.VisibleTreasureChestRoom):
 
     def _reward(self) -> float:
         reward = DEFAULT_REWARD
-        if self.key_found_num < np.sum(self.unfound_key==False):
+        if self.key_found_num < self.key_stock:
             self.key_found_num += 1
             reward += FOUND_IMMEDIATE_REWARD
         return reward
 
-
 class InvisibleChestHunt(base.InvisibleTreasureChestRoom):
 
     def __init__(self, **kwargs):
@@ -48,14 +47,24 @@ class InvisibleChestHunt(base.InvisibleTreasureChestRoom):
         super()._additional_reset()
         self.chest_found_num = 0
 
+    def _check_found(self) -> None:
+        found_chest, found_key = self._check_near()
+
+        if len(found_key) > 0:
+            self.unfound_key[found_key[0]] = False
+            self.key_stock += 1
+        elif len(found_chest) > 0:
+            self.treasure_stock += 1
+            self.unfound_chest[found_chest[0]] = False
+
     def _reward(self) -> float:
         reward = DEFAULT_REWARD
-        if self.chest_found_num < np.sum(self.unfound_chest==False):
+        if self.chest_found_num < self.treasure_stock:
             self.chest_found_num += 1
             reward += FOUND_IMMEDIATE_REWARD
         return reward
 
-class InvisibleChestHunt(base.InvisibleTreasureChestRoom):
+class VisibleChestHunt(base.VisibleTreasureChestRoom):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -65,9 +74,29 @@ class InvisibleChestHunt(base.InvisibleTreasureChestRoom):
         super()._additional_reset()
         self.chest_found_num = 0
 
+    def _check_found(self) -> None:
+        found_chest, found_key = self._check_near()
+
+        if len(found_key) > 0:
+            self.unfound_key[found_key[0]] = False
+            self.scener.tweak_key_collision(found_key[0], False)
+            self.key_stock += 1
+            
+            new_env_pixel = self.scener.pixelize()
+            self.actioner.register_env_pixel(new_env_pixel)
+            self.actioner.navs.mapper.scan()
+        elif len(found_chest) > 0:
+            self.treasure_stock += 1
+            self.unfound_chest[found_chest[0]] = False
+            self.scener.tweak_chest_collision(found_chest[0], False)
+            
+            new_env_pixel = self.scener.pixelize()
+            self.actioner.register_env_pixel(new_env_pixel)
+            self.actioner.navs.mapper.scan()
+
     def _reward(self) -> float:
         reward = DEFAULT_REWARD
-        if self.chest_found_num < np.sum(self.unfound_chest==False):
+        if self.chest_found_num < self.treasure_stock:
             self.chest_found_num += 1
             reward += FOUND_IMMEDIATE_REWARD
         return reward
