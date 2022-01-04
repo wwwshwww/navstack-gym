@@ -143,7 +143,7 @@ class InvisibleTreasureChestRoom(gym.Env):
         #     unfound_chest = self.unfound_chest,
         #     unfound_key = self.unfound_key
         # )
-        info = []
+        info = self._info()
         return observation, reward, done, info
 
     def step_with_debug(self, action, output_name=''):
@@ -157,8 +157,11 @@ class InvisibleTreasureChestRoom(gym.Env):
         reward = self._reward()
         done = self._is_done()
         observation = self._get_observation()
-        info = []
+        info = self._info()
         return observation, reward, done, info
+
+    def _info(self) -> dict:
+        return dict()
 
     def _check_near(self) -> tuple:
         norms_chest = np.linalg.norm(self.chest_positions[:,:2] - self.agent_current_position[:2], axis=1)
