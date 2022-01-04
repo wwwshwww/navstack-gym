@@ -139,6 +139,12 @@ class InvisibleTreasureChestRoom(gym.Env):
         reward = self._reward()
         done = self._is_done()
         observation = self._get_observation()
+        # info = dict(
+        #     positions = self.scener.components_info,
+        #     key_stock = self.key_stock,
+        #     unfound_chest = self.unfound_chest,
+        #     unfound_key = self.unfound_key
+        # )
         info = []
         return observation, reward, done, info
 
@@ -253,7 +259,7 @@ class InvisibleTreasureChestRoom(gym.Env):
             self.actioner.pose[1] / self.map_resolition,
             self.actioner.pose[2],
             order=0,
-            cval=MAP_UNK_VAL
+            cval=self.map_unk_val
         )
     
     def _convert_action_to_goal(self, relative_polar) -> tuple:
