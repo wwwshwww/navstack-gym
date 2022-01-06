@@ -58,7 +58,7 @@ AVOIDANCE_SIZE = 3
 MOVE_LIMIT = -1
 
 ## Gym param
-MOVABLE_DISCOUNT = 5 # movable = half_size / movable_discount
+MOVABLE_DISCOUNT = 5 # movable = map_full_size / movable_discount
 FOUND_THRESHOLD = 0.75
 FOUND_IMMEDIATE_REWARD = 50
 EXPLORE_MAGNIFICATION_REWARD = 200

@@ -21,7 +21,7 @@ class InvisibleTreasureChestRoom(gym.Env):
 
     # MAP_SIZE: 0.1
     # MAP_RESOLUTION: 256
-    # MOVABLE_RANGE: HALF/5
+    # MOVABLE_RANGE: MAPSIZE*RESOLUTION/5
 
     def __init__(self, 
             max_episode_steps: int=500, 
@@ -35,6 +35,7 @@ class InvisibleTreasureChestRoom(gym.Env):
             allowable_goal_error_norm: float=ALLOWABLE_GOAL_ERROR_NORM,
             avoidance_size: int=AVOIDANCE_SIZE,
             move_limit: int=MOVE_LIMIT,
+            movable_discount: float=MOVABLE_DISCOUNT,
             found_threshold: float=FOUND_THRESHOLD, 
             passable_color: int=PASSABLE_COLOR,
             map_obs_val: int=MAP_OBS_VAL,
@@ -70,7 +71,7 @@ class InvisibleTreasureChestRoom(gym.Env):
 
         self.env_full_size = self.map_size * self.map_resolution
         self.env_half_size = self.env_full_size / 2
-        self.moveble_range = self.env_half_size / MOVABLE_DISCOUNT
+        self.moveble_range = self.env_full_size / movable_discount
         self.action_space = spaces.Box(low=-1, high=1, shape=(3,))
         self.action_range = np.array([self.moveble_range, np.pi/2, np.pi/2])
 
