@@ -128,7 +128,7 @@ class InvisibleTreasureChestRoom(gym.Env):
 
         return self._get_observation()
 
-    def step(self, action):
+    def step(self, action, more_info=False):
         assert self.action_space.contains(action)
         self.elapsed_step += 1
         goal = self._convert_action_to_goal(action)
@@ -144,10 +144,15 @@ class InvisibleTreasureChestRoom(gym.Env):
         #     unfound_chest = self.unfound_chest,
         #     unfound_key = self.unfound_key
         # )
+        if more_info:
+            info = {'goal': goal, 'unfound_chests': self.unfound_chest, 'unfound_keys': self.unfound_key}
+        else:
+            info = dict()
+        
         info = self._info()
         return observation, reward, done, info
 
-    def step_with_debug(self, action, output_name=''):
+    def step_with_debug(self, action, more_info=False, output_name=''):
         assert self.action_space.contains(action)
         self.elapsed_step += 1
         goal = self._convert_action_to_goal(action)
@@ -158,7 +163,10 @@ class InvisibleTreasureChestRoom(gym.Env):
         reward = self._reward()
         done = self._is_done()
         observation = self._get_observation()
-        info = self._info()
+        if more_info:
+            info = {'goal': goal, 'unfound_chests': self.unfound_chest, 'unfound_keys': self.unfound_key}
+        else:
+            info = dict()
         return observation, reward, done, info
 
     def _info(self) -> dict:
