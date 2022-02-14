@@ -10,14 +10,18 @@ In this environment, the agent do action of instructing relative navigation goal
 
 
 ## Implemented Task
-`TreasureChestRoom` :   
+`TreasureChestRoom`:
+
+<img src='https://user-images.githubusercontent.com/41321650/144612303-07df02c0-b4af-46e0-8eea-36d905246f76.png' width=100%>
+
 Agent aim to open chests in unknown rooms with keys and discover as much treasure as possible.
 
 The rooms in which agent spawned are randomly generated such as the following structure.
 
 Yellow cube is key, and cyan cube is treasure chest. Each object will be generated based on different set of placing rules.
 
-<img src='https://user-images.githubusercontent.com/41321650/144612303-07df02c0-b4af-46e0-8eea-36d905246f76.png' width=100%>
+For more information, please click here: 
+[navstack\-gym/\_\_init\_\_\.py](https://github.com/wwwshwww/navstack-gym/blob/master/navstack_gym/__init__.py)
 
 
 ## Installation
@@ -27,11 +31,10 @@ pip install navstack-gym
 ```
 
 ## Usage
+Example of Learning Code with DrQ Agent:  
+[wwwshwww/navstack\-gym\-expr](https://github.com/wwwshwww/navstack-gym-expr)
 
-I'll add the note later.
-
-example:
-
+Random Walk Script:  
 ```python
 import gym
 import navstack_gym
